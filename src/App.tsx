@@ -72,7 +72,7 @@ function App() {
   }, [searchFilter, loglevel, history]);
 
   useEffect(() => {
-    connect(websocketAddr);
+    // connect(websocketAddr);
     // eslint-disable-next-line
   }, []);
 
