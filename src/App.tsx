@@ -29,7 +29,7 @@ import React, { useEffect, useRef, useState } from "react";
 import * as CSS from "csstype";
 import { useHistory, useLocation } from "react-router-dom";
 import ScrollableFeed from "react-scrollable-feed";
-import { MoonIcon, SettingsIcon, SunIcon } from "@chakra-ui/icons";
+import { LinkIcon, MoonIcon, SettingsIcon, SunIcon } from "@chakra-ui/icons";
 
 function App() {
   const toast = useToast();
@@ -108,6 +108,23 @@ function App() {
           aria-label="color mode"
           icon={colorMode === "dark" ? <MoonIcon /> : <SunIcon />}
           onClick={toggleColorMode}
+          m={2}
+        />
+        <IconButton
+          aria-label="connect"
+          icon={<LinkIcon />}
+          onClick={() =>
+            websocket ? websocket.close() : connect(websocketAddr)
+          }
+          colorScheme={
+            websocketState === "open"
+              ? "green"
+              : websocketState === "closed"
+              ? undefined
+              : websocketState === "error"
+              ? "yellow"
+              : undefined
+          }
           m={2}
         />
         <IconButton
