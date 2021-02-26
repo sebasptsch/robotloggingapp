@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "TDU Logging Client",
+  "name": "The Official TDU Logging Client",
   "icons": [
     {
       "src": "favicon.ico",
