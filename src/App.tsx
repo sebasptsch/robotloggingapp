@@ -73,6 +73,7 @@ function App() {
 
   useEffect(() => {
     connect(websocketAddr);
+    // eslint-disable-next-line
   }, []);
 
   function connect(web: string) {
