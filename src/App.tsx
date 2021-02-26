@@ -71,6 +71,10 @@ function App() {
     history.push({ search: params.toString() });
   }, [searchFilter, loglevel, history]);
 
+  useEffect(() => {
+    connect(websocketAddr);
+  }, []);
+
   function connect(web: string) {
     setMessages([]);
     var ws = new WebSocket(web);
