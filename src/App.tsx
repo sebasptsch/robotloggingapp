@@ -200,6 +200,15 @@ function App() {
                     }}
                   />
                 </FormControl>
+                <FormControl>
+                  <Button
+                    onClick={() => {
+                      setMessages([]);
+                    }}
+                  >
+                    Clear Messages
+                  </Button>
+                </FormControl>
               </Stack>
             </DrawerBody>
 
