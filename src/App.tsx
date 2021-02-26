@@ -14,22 +14,11 @@ import { useHistory, useLocation } from "react-router-dom";
 function App() {
   const history = useHistory();
   const search = useLocation().search;
-  useEffect(() => {
-    var initParams = new URLSearchParams(search);
-    if (initParams?.has("searchFilter")) {
-      setSearchFilter(initParams.get("searchFilter"));
-    } else {
-      setSearchFilter("");
-    }
-    if (initParams?.has("loglevel")) {
-      setLoglevel(initParams.get("loglevel"));
-    } else {
-      setLoglevel("debug");
-    }
-    // eslint-disable-next-line
-  }, []);
+  var initParams = new URLSearchParams(search);
   const fieldRef = useRef<HTMLInputElement>(null);
-  var [searchFilter, setSearchFilter] = useState<string | null>("");
+  var [searchFilter, setSearchFilter] = useState<string>(
+    initParams.get("searchFilter") || ""
+  );
   var [websocketAddr, setWebsocketAddr] = useState<string>(
     "ws://10.31.32.2:5804"
   );
@@ -38,8 +27,8 @@ function App() {
   >("unknown");
 
   var [loglevel, setLoglevel] = useState<
-    "debug" | "info" | "warning" | "error" | string | null
-  >("debug");
+    "debug" | "info" | "warning" | "error" | string
+  >(initParams.get("loglevel") || "debug");
 
   var [messages, setMessages] = useState<Array<string>>([]);
 
@@ -70,10 +59,6 @@ function App() {
       websocket.addEventListener("error", () => {
         console.log("error");
         setWebsocketState("error");
-      });
-      websocket.addEventListener("open", () => {
-        console.log("open");
-        setWebsocketState("open");
       });
       websocket.addEventListener("message", (evt) => {
         setMessages((prevState: any) => [...prevState, evt.data]);
@@ -106,11 +91,10 @@ function App() {
           {websocketState}
         </Button>
         <Select
-          defaultValue={loglevel ? loglevel : "debug"}
           onChange={(data) => {
             setLoglevel(data.target.value);
           }}
-          value={loglevel ? loglevel : "debug"}
+          value={loglevel}
         >
           <option value="error">Error</option>
           <option value="warning">Warning</option>
@@ -121,7 +105,7 @@ function App() {
       <Input
         borderRadius="0px"
         placeholder="Search"
-        value={searchFilter ? searchFilter : ""}
+        value={searchFilter}
         onChange={(e) => {
           setSearchFilter(e.target.value);
         }}
@@ -142,9 +126,7 @@ function App() {
               : splitmsg[2]?.includes("");
           })
           ?.filter((message) => {
-            return searchFilter
-              ? message?.toLowerCase().includes(searchFilter?.toLowerCase())
-              : message?.toLowerCase().includes("");
+            return message?.toLowerCase().includes(searchFilter?.toLowerCase());
           })
           ?.map((message, index) => {
             var splitmsg = message.split(/^([0-9.]+) \((.+)\) \[([^]+)] (.*)/);
