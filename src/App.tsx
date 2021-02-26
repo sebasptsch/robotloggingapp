@@ -156,7 +156,7 @@ function App() {
                           websocketState === "open"
                             ? "green"
                             : websocketState === "closed"
-                            ? "red"
+                            ? undefined
                             : websocketState === "error"
                             ? "yellow"
                             : undefined
