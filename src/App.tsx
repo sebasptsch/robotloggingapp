@@ -116,7 +116,14 @@ function App() {
           onClick={() =>
             websocket ? websocket.close() : connect(websocketAddr)
           }
-          colorScheme={websocketState === "open" ? "green" : undefined}
+          isDisabled={websocketState === "connecting"}
+          colorScheme={
+            websocketState === "open"
+              ? "green"
+              : websocketState === "connecting"
+              ? "yellow"
+              : undefined
+          }
           m={2}
         />
         <IconButton
@@ -161,8 +168,13 @@ function App() {
                             ? websocket.close()
                             : connect(websocketAddr);
                         }}
+                        isDisabled={websocketState === "connecting"}
                         colorScheme={
-                          websocketState === "open" ? "green" : undefined
+                          websocketState === "open"
+                            ? "green"
+                            : websocketState === "connecting"
+                            ? "yellow"
+                            : undefined
                         }
                       >
                         {websocketState === "closed"
