@@ -50,21 +50,21 @@ function App() {
   function connect(web: string) {
     setMessages([]);
     var websocket = new WebSocket(web);
-    websocket.onopen = () => {
+    websocket.addEventListener("close", () => {
+      console.log("closed");
+      setWebsocketState("closed");
+    });
+    websocket.addEventListener("error", (e) => {
+      console.log("error");
+      setWebsocketState("error");
+    });
+    websocket.addEventListener("message", (evt) => {
+      setMessages((prevState: any) => [...prevState, evt.data]);
+      if (fieldRef.current) fieldRef.current?.scrollIntoView();
+    });
+    websocket.addEventListener("open", () => {
       setWebsocketState("open");
-      websocket.addEventListener("close", () => {
-        console.log("closed");
-        setWebsocketState("closed");
-      });
-      websocket.addEventListener("error", () => {
-        console.log("error");
-        setWebsocketState("error");
-      });
-      websocket.addEventListener("message", (evt) => {
-        setMessages((prevState: any) => [...prevState, evt.data]);
-        if (fieldRef.current) fieldRef.current?.scrollIntoView();
-      });
-    };
+    });
   }
 
   return (
@@ -103,7 +103,7 @@ function App() {
         </Select>
       </InputGroup>
       <Input
-        borderRadius="0px"
+        // borderRadius="0px"
         placeholder="Search"
         value={searchFilter}
         onChange={(e) => {
