@@ -1,6 +1,7 @@
 import {
   Button,
   Center,
+  Checkbox,
   Code,
   Drawer,
   DrawerBody,
@@ -42,6 +43,13 @@ function App() {
   var [searchFilter, setSearchFilter] = useState<string>(
     initParams.get("searchFilter") || ""
   );
+  var [activeSubsystems, setActiveSubsystems] = useState<
+    Array<string | undefined>
+  >(initParams.get("subsystems")?.split(",") || []);
+
+  var [subsystems, setSubsystems] = useState<Array<string | undefined>>(
+    initParams.get("subsystems")?.split(",") || []
+  );
   var [websocket, setWebsocket] = useState<WebSocket>();
   var [websocketAddr, setWebsocketAddr] = useState<string>(
     "ws://10.31.32.2:5804"
@@ -68,14 +76,18 @@ function App() {
     } else {
       params.delete("loglevel");
     }
+    if (activeSubsystems.length > 0) {
+      params.append("subsystems", activeSubsystems.toString());
+    } else {
+      params.delete("subsystems");
+    }
     history.push({ search: params.toString() });
-  }, [searchFilter, loglevel, history]);
+  }, [searchFilter, loglevel, activeSubsystems, history]);
 
   useEffect(() => {
-    // connect(websocketAddr);
+    connect(websocketAddr);
     // eslint-disable-next-line
   }, []);
-
   function connect(web: string) {
     setMessages([]);
     var ws = new WebSocket(web);
@@ -83,6 +95,7 @@ function App() {
     ws.addEventListener("close", () => {
       console.log("closed");
       setWebsocketState("closed");
+      setWebsocket(undefined);
     });
     ws.addEventListener("error", (e) => {
       console.log(e);
@@ -94,7 +107,19 @@ function App() {
       setWebsocketState("error");
     });
     ws.addEventListener("message", (evt) => {
-      setMessages((prevState: any) => [...prevState, evt.data]);
+      var splitmsg = evt.data.split(/^([0-9.]+) \((.+)\) \[([^]+)] (.*)/);
+      if (splitmsg[2] !== undefined) {
+        setMessages((prevState: any) => [...prevState, evt.data]);
+
+        if (!subsystems.includes(splitmsg[3])) {
+          setSubsystems((prevState: any) => {
+            if (!prevState.includes(splitmsg[3])) {
+              return [...prevState, splitmsg[3]];
+            }
+            return [...prevState];
+          });
+        }
+      }
     });
     ws.addEventListener("open", () => {
       setWebsocket(ws);
@@ -127,6 +152,8 @@ function App() {
               ? "green"
               : websocketState === "connecting"
               ? "yellow"
+              : websocketState === "closed"
+              ? "red"
               : undefined
           }
           m={2}
@@ -179,17 +206,19 @@ function App() {
                             ? "green"
                             : websocketState === "connecting"
                             ? "yellow"
+                            : websocketState === "closed"
+                            ? "red"
                             : undefined
                         }
                       >
                         {websocketState === "closed"
-                          ? "Connect"
+                          ? "Closed"
                           : websocketState === "open"
-                          ? "Disconect"
+                          ? "Connected"
                           : websocketState === "connecting"
                           ? "Connecting"
                           : !websocket
-                          ? "Connect"
+                          ? "Closed"
                           : "Unknown"}
                       </Button>
                     </InputRightElement>
@@ -229,6 +258,36 @@ function App() {
                     Clear Messages
                   </Button>
                 </FormControl>
+                <FormControl>
+                  <FormLabel>Subsystems</FormLabel>
+                  <Stack>
+                    {subsystems.map((subsystem) => {
+                      return (
+                        <Checkbox
+                          size="md"
+                          colorScheme="green"
+                          isChecked={activeSubsystems.includes(subsystem)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setActiveSubsystems((prevState) => [
+                                ...prevState,
+                                subsystem,
+                              ]);
+                            } else {
+                              setActiveSubsystems((prevState) => [
+                                ...prevState.filter((item) => {
+                                  return item !== subsystem;
+                                }),
+                              ]);
+                            }
+                          }}
+                        >
+                          {subsystem}
+                        </Checkbox>
+                      );
+                    })}
+                  </Stack>
+                </FormControl>
               </Stack>
             </DrawerBody>
 
@@ -245,16 +304,44 @@ function App() {
                 /^([0-9.]+) \((.+)\) \[([^]+)] (.*)/
               );
               return loglevel === "debug"
-                ? splitmsg[2]?.includes(
-                    "Debug" || "Info" || "Warning" || "Error"
-                  )
+                ? splitmsg[2]?.includes("Debug") ||
+                    splitmsg[2]?.includes("Info") ||
+                    splitmsg[2]?.includes("Warning") ||
+                    splitmsg[2]?.includes("Error")
                 : loglevel === "info"
-                ? splitmsg[2]?.includes("Info" || "Warning" || "Error")
+                ? splitmsg[2]?.includes("Info") ||
+                  splitmsg[2]?.includes("Warning") ||
+                  splitmsg[2]?.includes("Error")
                 : loglevel === "warning"
-                ? splitmsg[2]?.includes("Warning" || "Error")
+                ? splitmsg[2]?.includes("Warning") ||
+                  splitmsg[2]?.includes("Error")
                 : loglevel === "error"
                 ? splitmsg[2]?.includes("Error")
                 : splitmsg[2]?.includes("");
+            })
+            ?.filter((message) => {
+              var splitmsg = message.split(
+                /^([0-9.]+) \((.+)\) \[([^]+)] (.*)/
+              );
+              // console.log(
+              //   splitmsg[3],
+              //   activeSubsystems.map((subsystem) =>
+              //     subsystem ? splitmsg[3].includes(subsystem) : false
+              //   ),
+              //   activeSubsystems
+              //     .map((subsystem) =>
+              //       subsystem ? splitmsg[3].includes(subsystem) : false
+              //     )
+              //     .some((item) => item)
+              // );
+              if (activeSubsystems.length !== 0) {
+                return activeSubsystems
+                  .map((subsystem) =>
+                    subsystem ? splitmsg[3].includes(subsystem) : false
+                  )
+                  .some((item) => item);
+              }
+              return true;
             })
             ?.filter((message) => {
               return message
@@ -267,22 +354,36 @@ function App() {
               );
               var color: CSS.Property.Color =
                 splitmsg[2] === "Info"
-                  ? "blue.300"
+                  ? colorMode === "dark"
+                    ? "blue.300"
+                    : "blue.500"
                   : splitmsg[2] === "Debug"
-                  ? "green.300"
+                  ? colorMode === "dark"
+                    ? "green.300"
+                    : "green.500"
                   : splitmsg[2] === "Error"
-                  ? "red.300"
+                  ? colorMode === "dark"
+                    ? "red.300"
+                    : "red.500"
                   : splitmsg[2] === "Warning"
-                  ? "yellow.300"
+                  ? colorMode === "dark"
+                    ? "yellow.300"
+                    : "yellow.500"
                   : "";
               return (
-                <>
-                  <Text textColor={color} w="100%" key={`log${index}`}>
-                    {splitmsg[1]} ({splitmsg[2]}) [{splitmsg[3]}] {splitmsg[4]}
-                  </Text>
-                </>
+                <Text textColor={color} w="100%" key={`log${index}`}>
+                  {splitmsg[1]} ({splitmsg[2]}) [{splitmsg[3]}] {splitmsg[4]}
+                </Text>
               );
             })}
+          <div
+            style={{ visibility: "hidden" }}
+            ref={(el) => {
+              if (el) {
+                el.scrollIntoView(false);
+              }
+            }}
+          />
         </ScrollableFeed>
       </Code>
     </Flex>
