@@ -43,6 +43,7 @@ function App() {
   const { colorMode, toggleColorMode } = useColorMode();
   const history = useHistory();
   const search = useLocation().search;
+  // console.log(useLocation());
   var initParams = new URLSearchParams(search);
   const { isOpen, onOpen, onClose } = useDisclosure();
   const btnRef = useRef(null);
@@ -61,9 +62,7 @@ function App() {
     initParams.get("subsystems")?.split(",") || []
   );
   var [websocket, setWebsocket] = useState<WebSocket>();
-  var [websocketAddr, setWebsocketAddr] = useState<string>(
-    "ws://10.31.32.2:5804"
-  );
+  var [websocketAddr, setWebsocketAddr] = useState<string>("");
   var [websocketState, setWebsocketState] = useState<
     "closed" | "open" | "error" | "unknown" | "connecting"
   >("unknown");
@@ -95,15 +94,16 @@ function App() {
   }, [searchFilter, loglevel, activeSubsystems, autoscroll, history]);
 
   useEffect(() => {
-    connect(websocketAddr);
+    setWebsocketAddr(window.location.hostname);
+    connect(window.location.hostname);
     // eslint-disable-next-line
   }, []);
   function connect(web: string) {
     setMessages([]);
-    var ws = new WebSocket(web);
+    var ws = new WebSocket(`ws://${web}:5804`);
     setWebsocketState("connecting");
     ws.addEventListener("close", () => {
-      console.log("closed");
+      // console.log("closed");
       setWebsocketState("closed");
       setWebsocket(undefined);
     });

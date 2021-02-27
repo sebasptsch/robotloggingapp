@@ -1,6 +1,7 @@
 {
   "name": "robotloggingapp",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "homepage": "./",
   "private": true,
   "dependencies": {
     "@chakra-ui/icons": "^1.0.5",
