@@ -30,7 +30,13 @@ import React, { useEffect, useRef, useState } from "react";
 import * as CSS from "csstype";
 import { useHistory, useLocation } from "react-router-dom";
 import ScrollableFeed from "react-scrollable-feed";
-import { LinkIcon, MoonIcon, SettingsIcon, SunIcon } from "@chakra-ui/icons";
+import {
+  ChevronDownIcon,
+  LinkIcon,
+  MoonIcon,
+  SettingsIcon,
+  SunIcon,
+} from "@chakra-ui/icons";
 
 function App() {
   const toast = useToast();
@@ -46,6 +52,10 @@ function App() {
   var [activeSubsystems, setActiveSubsystems] = useState<
     Array<string | undefined>
   >(initParams.get("subsystems")?.split(",") || []);
+
+  var [autoscroll, setAutoscroll] = useState<boolean>(
+    initParams.get("autoscroll") === "true" || true
+  );
 
   var [subsystems, setSubsystems] = useState<Array<string | undefined>>(
     initParams.get("subsystems")?.split(",") || []
@@ -82,7 +92,7 @@ function App() {
       params.delete("subsystems");
     }
     history.push({ search: params.toString() });
-  }, [searchFilter, loglevel, activeSubsystems, history]);
+  }, [searchFilter, loglevel, activeSubsystems, autoscroll, history]);
 
   useEffect(() => {
     connect(websocketAddr);
@@ -131,9 +141,16 @@ function App() {
     <Flex h="100vh" direction="column">
       <Flex>
         <Center pl={4}>
-          <Heading size={"lg"}>TDU Logging Client</Heading>
+          <Heading size={"lg"}>TDU Logging</Heading>
         </Center>
         <Spacer />
+        <IconButton
+          aria-label="autoscroll"
+          icon={<ChevronDownIcon />}
+          onClick={() => setAutoscroll((prevState) => !prevState)}
+          colorScheme={autoscroll ? "blue" : undefined}
+          m={2}
+        />
         <IconButton
           aria-label="color mode"
           icon={colorMode === "dark" ? <MoonIcon /> : <SunIcon />}
@@ -379,7 +396,7 @@ function App() {
           <div
             style={{ visibility: "hidden" }}
             ref={(el) => {
-              if (el) {
+              if (el && autoscroll) {
                 el.scrollIntoView(false);
               }
             }}
