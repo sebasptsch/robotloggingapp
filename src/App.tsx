@@ -314,94 +314,84 @@ function App() {
       </Drawer>
 
       <Code w="100%" overflowY="scroll" flex="1" colorScheme={"blackAlpha"}>
-        <ScrollableFeed>
-          {messages
-            ?.filter((message) => {
-              var splitmsg = message.split(
-                /^([0-9.]+) \((.+)\) \[([^]+)] (.*)/
-              );
-              return loglevel === "debug"
-                ? splitmsg[2]?.includes("Debug") ||
-                    splitmsg[2]?.includes("Info") ||
-                    splitmsg[2]?.includes("Warning") ||
-                    splitmsg[2]?.includes("Error")
-                : loglevel === "info"
-                ? splitmsg[2]?.includes("Info") ||
+        {messages
+          ?.filter((message) => {
+            var splitmsg = message.split(/^([0-9.]+) \((.+)\) \[([^]+)] (.*)/);
+            return loglevel === "debug"
+              ? splitmsg[2]?.includes("Debug") ||
+                  splitmsg[2]?.includes("Info") ||
                   splitmsg[2]?.includes("Warning") ||
                   splitmsg[2]?.includes("Error")
-                : loglevel === "warning"
-                ? splitmsg[2]?.includes("Warning") ||
-                  splitmsg[2]?.includes("Error")
-                : loglevel === "error"
-                ? splitmsg[2]?.includes("Error")
-                : splitmsg[2]?.includes("");
-            })
-            ?.filter((message) => {
-              var splitmsg = message.split(
-                /^([0-9.]+) \((.+)\) \[([^]+)] (.*)/
-              );
-              // console.log(
-              //   splitmsg[3],
-              //   activeSubsystems.map((subsystem) =>
-              //     subsystem ? splitmsg[3].includes(subsystem) : false
-              //   ),
-              //   activeSubsystems
-              //     .map((subsystem) =>
-              //       subsystem ? splitmsg[3].includes(subsystem) : false
-              //     )
-              //     .some((item) => item)
-              // );
-              if (activeSubsystems.length !== 0) {
-                return activeSubsystems
-                  .map((subsystem) =>
-                    subsystem ? splitmsg[3].includes(subsystem) : false
-                  )
-                  .some((item) => item);
-              }
-              return true;
-            })
-            ?.filter((message) => {
-              return message
-                ?.toLowerCase()
-                .includes(searchFilter?.toLowerCase());
-            })
-            ?.map((message, index) => {
-              var splitmsg = message.split(
-                /^([0-9.]+) \((.+)\) \[([^]+)] (.*)/
-              );
-              var color: CSS.Property.Color =
-                splitmsg[2] === "Info"
-                  ? colorMode === "dark"
-                    ? "blue.300"
-                    : "blue.500"
-                  : splitmsg[2] === "Debug"
-                  ? colorMode === "dark"
-                    ? "green.300"
-                    : "green.500"
-                  : splitmsg[2] === "Error"
-                  ? colorMode === "dark"
-                    ? "red.300"
-                    : "red.500"
-                  : splitmsg[2] === "Warning"
-                  ? colorMode === "dark"
-                    ? "yellow.300"
-                    : "yellow.500"
-                  : "";
-              return (
-                <Text textColor={color} w="100%" key={`log${index}`}>
-                  {splitmsg[1]} ({splitmsg[2]}) [{splitmsg[3]}] {splitmsg[4]}
-                </Text>
-              );
-            })}
-          <div
-            style={{ visibility: "hidden" }}
-            ref={(el) => {
-              if (el && autoscroll) {
-                el.scrollIntoView(false);
-              }
-            }}
-          />
-        </ScrollableFeed>
+              : loglevel === "info"
+              ? splitmsg[2]?.includes("Info") ||
+                splitmsg[2]?.includes("Warning") ||
+                splitmsg[2]?.includes("Error")
+              : loglevel === "warning"
+              ? splitmsg[2]?.includes("Warning") ||
+                splitmsg[2]?.includes("Error")
+              : loglevel === "error"
+              ? splitmsg[2]?.includes("Error")
+              : splitmsg[2]?.includes("");
+          })
+          ?.filter((message) => {
+            var splitmsg = message.split(/^([0-9.]+) \((.+)\) \[([^]+)] (.*)/);
+            // console.log(
+            //   splitmsg[3],
+            //   activeSubsystems.map((subsystem) =>
+            //     subsystem ? splitmsg[3].includes(subsystem) : false
+            //   ),
+            //   activeSubsystems
+            //     .map((subsystem) =>
+            //       subsystem ? splitmsg[3].includes(subsystem) : false
+            //     )
+            //     .some((item) => item)
+            // );
+            if (activeSubsystems.length !== 0) {
+              return activeSubsystems
+                .map((subsystem) =>
+                  subsystem ? splitmsg[3].includes(subsystem) : false
+                )
+                .some((item) => item);
+            }
+            return true;
+          })
+          ?.filter((message) => {
+            return message?.toLowerCase().includes(searchFilter?.toLowerCase());
+          })
+          ?.map((message, index) => {
+            var splitmsg = message.split(/^([0-9.]+) \((.+)\) \[([^]+)] (.*)/);
+            var color: CSS.Property.Color =
+              splitmsg[2] === "Info"
+                ? colorMode === "dark"
+                  ? "blue.300"
+                  : "blue.500"
+                : splitmsg[2] === "Debug"
+                ? colorMode === "dark"
+                  ? "green.300"
+                  : "green.500"
+                : splitmsg[2] === "Error"
+                ? colorMode === "dark"
+                  ? "red.300"
+                  : "red.500"
+                : splitmsg[2] === "Warning"
+                ? colorMode === "dark"
+                  ? "yellow.300"
+                  : "yellow.500"
+                : "";
+            return (
+              <Text textColor={color} w="100%" key={`log${index}`}>
+                {splitmsg[1]} ({splitmsg[2]}) [{splitmsg[3]}] {splitmsg[4]}
+              </Text>
+            );
+          })}
+        <div
+          style={{ visibility: "hidden" }}
+          ref={(el) => {
+            if (el && autoscroll) {
+              el.scrollIntoView(false);
+            }
+          }}
+        />
       </Code>
     </Flex>
   );
